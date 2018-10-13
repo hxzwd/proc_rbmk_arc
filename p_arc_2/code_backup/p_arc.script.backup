@@ -1,0 +1,5 @@
+cell-list: false
+cell: 34-43
+cell-info: false
+output-file: out5.txt
+fields: P, W, G, dkv1_of, dkv2_of

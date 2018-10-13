@@ -1,0 +1,6 @@
+cell-list: true
+cell: 50-31
+cell-info: false
+output-file: out6.txt
+fields: param dkv1_of W G dkv2_of P
+

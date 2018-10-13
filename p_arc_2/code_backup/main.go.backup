@@ -1,0 +1,318 @@
+
+package main
+
+import (
+	"fmt"
+	"os"
+	"bufio"
+	"strings"
+	"text/tabwriter"
+)
+
+func sum_data_dumps(data_dump ...map[string][]string) map[string][]string {
+
+	res := make(map[string][]string)
+	for index, value := range data_dump {
+		if index == 0 {
+			res = value
+			continue
+		}
+		for k, v := range value {
+			res[k] = append(res[k], v...)
+		}
+	}
+
+	return res
+
+}
+
+func write_data_csv(filename string, csv_data []string, num_of_rows int) {
+
+
+	tab_writer := new(tabwriter.Writer)
+
+
+	var num_w_bytes int = 0
+
+//	f, err0 := os.OpenFile(filename, os.O_APPEND, 0666)
+
+	f, err0 := os.Create(filename)
+
+	if err0 != nil {
+		fmt.Printf("write_data_csv() could not open output file %s: %v\n", filename, err0)
+		os.Exit(1)
+	}
+	file_writer := bufio.NewWriter(f)
+	tab_writer.Init(file_writer, 0, 8, 2, '\t', tabwriter.AlignRight)
+	for i := 0; i < num_of_rows; i++ {
+		fmt.Fprintln(tab_writer, strings.Trim(csv_data[i], "\n") + "\t")
+//		nb, err0 := f.WriteString(csv_data[i])
+//		num_w_bytes += nb
+//		if err0 != nil {
+//			fmt.Printf("write_data_csv() could not write in output file %s: %v\n", filename, err0)
+//			os.Exit(1)
+//		}
+	}
+	fmt.Fprintln(tab_writer)
+	file_writer.Flush()
+	tab_writer.Flush()
+
+	f.Sync()
+	f.Close()
+
+	fmt.Printf("%d bytes writed in %s\n", num_w_bytes, filename)
+
+}
+
+
+func read_data_main(path string, filename string, cell_coord string) (map[string][]string, rbmk_cell, string) {
+
+//	fmt.Println("Proccess rbmk-1000 archive data\n")
+
+	const max_line_len = 1024 * 1024
+
+//	var path string = "/home/hjk/mephim/arc_data/arc1_txt_part/00.txt"
+	path = path + "/" + filename
+	fmt.Printf("Target file: %s\n", path)
+	var counter int = 0
+	data := make([]string, 1024)
+	buf := make([]byte, max_line_len)
+	hndl, err1 := os.Open(path)
+	if err1 != nil {
+		fmt.Printf("could not open file %s: %v\n", path, err1)
+		os.Exit(1)
+	}
+	defer hndl.Close()
+
+	scanner := bufio.NewScanner(hndl)
+	scanner.Buffer(buf, max_line_len)
+	for scanner.Scan() {
+		data[counter] = strings.Trim(scanner.Text(), " \t")
+		counter++
+	}
+
+	err1 = scanner.Err()
+
+	if err1 != nil {
+		fmt.Printf("scanner error: %v\n", err1)
+		os.Exit(1)
+	}
+
+//	for i := 736; i < counter; i++ {
+//		fmt.Printf("%d:\t%s\n", i, string(data[i]))
+//	}
+
+//	fmt.Println(f_get_data_format(data, counter))
+//
+//	params_list := f_make_params_list(f_get_data_params(data[0:16], 15))
+//	new_params_list := make([]string, len(params_list))
+//
+//	for i, param := range params_list {
+//		new_params_list[i] = f_translate_param(param, nil)
+//	}
+
+//	for i := 0; i < len(params_list); i++ {
+//		fmt.Printf("%d:\t%s => %s\n", i, params_list[i], new_params_list[i])
+//	}
+
+//	fmt.Println(f_get_data_values_str(data[0:16], "СУЗ", 15))
+
+//	tmp_data0 := f_get_data_values_list(data[0:16], "СУЗ", 15)
+//	fmt.Println(tmp_data0)
+//	fmt.Println(len(tmp_data0))
+
+//	cells_list := f_get_cells_list(data, counter)
+
+//	for i, v := range cells_list {
+//		fmt.Printf("%d:\t%s\t%s\n", i, v.to_str(), v.get_type(data))
+//	}
+
+//	tmp_data1 := cells_list[16].get_values(data, "Мощность")
+//	fmt.Println(tmp_data1[0:5])
+//	fmt.Println(tmp_data1)
+
+//	cells_list[16].print_params(data, 2)
+//	cell := cells_list[16]
+
+//	tmp_data2 := f_proc_dkv_data(cell.get_values2(data, "dkv1"))
+//	tmp_data2 := cell.get_values2(data, "dkv1")
+//	for index, v := range tmp_data2 {
+//		if index > 4 {
+//			break
+//		}
+//		tmp0 := strings.Split(v, " ")
+//		fmt.Printf("%s\t%s\n%s\t%s\n\n", tmp0[0], tmp0[1], tmp0[2], tmp0[3])
+//	}
+//	fmt.Println(len(tmp_data2))
+
+
+//	for index, v := range cell.get_values2(data, "P") {
+//		if index > 16 {
+//			fmt.Println()
+//			break
+//		}
+//		fmt.Printf("%s\t", v)
+//	}
+
+//	cell.print_fields_len(data)
+//	cell.print_field_data(data, "W_T", 0, 15)
+
+//	for _, param := range params_list {
+//		fmt.Printf("%s => %s\n", param, f_translate_param(param, nil))
+//	}
+
+	cells_list := f_get_cells_list(data, counter)
+	cell, status := f_find_cell_in_list(cells_list, cell_coord)
+//	cell := cells_list[16]
+	if !status {
+		fmt.Printf("cell [coord: %s] not found\n", cell_coord)
+		return nil, cell, ""
+	}
+
+//	cell.print_field_data(data, "W_T", -10, -1)
+	cell.print_cell_info(data)
+
+	all_data := cell.get_all_data(data)
+	all_data_offset := cell.get_all_offset_data(data)
+
+	fmt.Println(len(all_data))
+
+//	fmt.Println(all_data)
+	return all_data_offset, cell, cell.get_type(data)
+
+}
+
+
+func form_csv_table(data map[string][]string, cell_type string) ([]string, int) {
+
+	table_len := len(data["param"]) + 2
+
+	table_data := make([]string, table_len)
+	var header string = "param\t"
+	var table_row string = ""
+	var row_counter int = 1
+	for key, value := range data {
+		if (key == strings.ToLower(cell_type) && strings.Contains(cell_type, "DKV")) || f_is_none_data(value) || key == "param" {
+			continue
+		}
+		header = header +  key + "\t"
+	}
+	table_data[0] = strings.TrimSpace(header) + "\n"
+	header_list := strings.Split(strings.Trim(header, "\n \t"), "\t")
+	for i := 0; i < len(data["param"]); i++ {
+		table_row = ""
+		for _, key := range header_list {
+			table_row = table_row + data[key][i] + "\t"
+		}
+		table_data[i + 1] = strings.TrimSpace(table_row) + "\n"
+		row_counter++
+	}
+	return table_data, row_counter
+
+}
+
+func main() {
+
+	fmt.Println("Proccess rbmk-1000 archive data\n")
+
+
+	var path string = "/home/hjk/mephim/arc_data/arc1_txt_part"
+	files := []string{ "00.txt", "01.txt", "02.txt", "03.txt", "04.txt", "05.txt", "06.txt", "07.txt", "08.txt", "09.txt", "10.txt", "11.txt" }
+	var cell_coord string = "30-51"
+
+	data, cell, cell_type := read_data_main(path, files[0], cell_coord)
+
+	if cell.is_empty() {
+		fmt.Printf("Cell not found\n")
+	}
+
+//	fmt.Println(len(data))
+/*
+	for key, value := range data {
+		fmt.Printf("\n%s:\n", key)
+		fmt.Println(value[0:10])
+	}
+
+	for _, value := range data["dkv1_of"] {
+		fmt.Printf("%s\n", value)
+	}
+*/
+	data1, _, _ := read_data_main(path, files[1], cell_coord)
+	data2, _, _ := read_data_main(path, files[2], cell_coord)
+	data3, _, _ := read_data_main(path, files[3], cell_coord)
+	data4, _, _ := read_data_main(path, files[4], cell_coord)
+	data5, _, _ := read_data_main(path, files[5], cell_coord)
+	data6, _, _ := read_data_main(path, files[6], cell_coord)
+	data7, _, _ := read_data_main(path, files[7], cell_coord)
+	data8, _, _ := read_data_main(path, files[8], cell_coord)
+	data9, _, _ := read_data_main(path, files[9], cell_coord)
+	data10, _, _ := read_data_main(path, files[10], cell_coord)
+	data11, _, _ := read_data_main(path, files[11], cell_coord)
+
+
+//	final_data := sum_data_dumps(data, data1)
+	final_data := sum_data_dumps(data, data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11)
+
+//	fmt.Println(len(final_data["param"]))
+//	for i, v := range final_data["param"] {
+//		fmt.Printf("%d\t%s\n", i, v)
+//	}
+//	for k, v := range final_data {
+//		fmt.Printf("%s:%d\n", k, len(v))
+//	}
+
+//	fmt.Println(len(final_data))
+
+	table_data, row_counter := form_csv_table(final_data, cell_type)
+
+
+	write_data_csv("out.txt", table_data, row_counter)
+
+}
+
+
+
+/*
+	table_len := len(data["param"]) + 1
+	table_data := make([]string, table_len)
+	var header string = "param\t"
+	var table_row string = ""
+	var row_counter int = 1
+	for key, value := range data {
+		if (key == strings.ToLower(cell_type) && strings.Contains(cell_type, "DKV")) || f_is_none_data(value) || key == "param" {
+			continue
+		}
+		header = header +  key + "\t"
+	}
+	table_data[0] = strings.TrimSpace(header) + "\n"
+	header_list := strings.Split(strings.Trim(header, "\n \t"), "\t")
+	for i := 0; i < table_len - 2; i++ {
+		table_row = ""
+		for _, key := range header_list {
+			table_row = table_row + data[key][i] + "\t"
+		}
+		table_data[i + 1] = strings.TrimSpace(table_row) + "\n"
+		row_counter++
+	}
+*/
+/*
+	for i := 0; i < 15; i++ {
+		table_row = ""
+		for key, value := range data {
+			if !strings.Contains(header, key) {
+				continue
+			}
+			table_row = table_row + value[i] + "\t"
+		}
+		table_data[i + 1] = strings.TrimSpace(table_row) + "\n"
+		row_counter++
+	}
+*/
+//	for i := 0; i < row_counter; i++ {
+//		fmt.Printf("%s", table_data[i])
+//	}
+
+//	for _, column_name := range header_list {
+//		fmt.Printf("%s\n", column_name)
+//	}
+
