@@ -226,7 +226,7 @@ func main_old() {
 
 
 
-	var path string = "/home/hjk/mephim/arc_data/arc1_txt_part"
+	var path string = "/home/hxzwd/mephim/arc_data/arc1_txt_part"
 	var output_file string = "out2.txt"
 	files := []string{ "00.txt", "01.txt", "02.txt", "03.txt", "04.txt", "05.txt", "06.txt", "07.txt", "08.txt", "09.txt", "10.txt", "11.txt" }
 	var cell_coord string = "30-51"
@@ -491,11 +491,252 @@ func read_data_main_for_cell_list(path string, filename string, cell_coords []st
 
 
 
-func main() {
+func main_old_2() {
+	/*
+		tools_get_cells_info_2()
 
-	tools_get_cells_info_2()
+	//	tools_get_cells_info()
+	*/
 
-//	tools_get_cells_info()
+
+	filenames := []string{ "00.txt", "01.txt", "02.txt", "03.txt", "04.txt", "05.txt", "06.txt", "07.txt", "08.txt", "09.txt", "10.txt", "11.txt" }
+	cells_coords := []string{ "44-23", "44-33", "30-51" }
+
+
+	var path string = "/home/hxzwd/mephim/arc_data/arc1_txt_part"
+	var dump_path string = "/home/hxzwd/go_code/proc_rbmk_arc/p_arc_2/dumps"
+	var dump_filename string = "arc.dump"
+	var csv_path string = "/home/hxzwd/go_code/proc_rbmk_arc/p_arc_2/dumps"
+	var csv_filename string = "data.txt"
+
+
+	info_mode_string := "default"
+	flag_raw_data := false
+	flag_not_none := true
+	table_format_options := "default"
+	var arc_data archiveData = NewEmptyArchiveData()
+
+
+
+	if _, err := os.Stat(dump_path + "/" + dump_filename); !os.IsNotExist(err) {
+		fmt.Printf("Dump file [%s/%s] exist\nNow read...\n", dump_path, dump_filename)
+		arc_data = tools_read_archive_dump(dump_path, dump_filename)
+	} else {
+		arc_data, _ = tools_get_archive_data(path, filenames, info_mode_string, cells_coords, flag_raw_data)
+	}
+
+	if !arc_data.empty() {
+		arc_data.print_info("")
+	}
+
+	table_fields := map[string][]string{ "all" : []string{ "param", "P", "dkv1_of", "dkv2_of" }}
+
+
+	table_data, table_head, _ := tools_get_table_view(arc_data, cells_coords, table_fields, flag_not_none, table_format_options)
+
+	tools_write_data_csv(csv_path, csv_filename, table_data, table_head, 0)
+
+
+	fields := map[string][]string{ "all" : []string{ "P", "dkv1_of", "dkv2_of", "W" }}
+	tools_dump_csv(csv_path, "data2.txt", arc_data, cells_coords, fields, true, "default", "default")
+
+
+
+/*
+
+//	table_data, table_head, _ := tools_get_table_view(arc_data, cells_coords, table_fields)
+//	fmt.Println(table_data[0])
+//	fmt.Println(table_head)
+
+	table_data, table_head, _ := tools_filter_archive_columns(arc_data, cells_coords, table_fields)
+
+	for key, value := range table_data {
+		fmt.Println(key)
+		fmt.Println(value[0:5])
+	}
+	fmt.Println(table_head)
+
+	_, opt, cols := tools_get_table_view(arc_data, cells_coords, table_fields)
+
+	opt = opt
+	cols = cols
+
+	a, b := ft_fprint_list_of_columns("h = 30-51:dkv1_of\t44-33:P", [][]string{ table_data["30-51:dkv1_of"], table_data["44-33:P"] }, 2)
+//	a, b := ft_fprint_two_columns(table_data["30-51:dkv1_of"], table_data["44-33:P"], "h = 30-51:dkv1_of\t44-33:P")
+	fmt.Println(a[0:3])
+	fmt.Println(b)
+
+*/
+
+
 
 }
 
+
+
+func main_old_3() {
+
+	filenames := []string{ "00.txt", "01.txt", "02.txt", "03.txt", "04.txt", "05.txt", "06.txt", "07.txt", "08.txt", "09.txt", "10.txt", "11.txt" }
+	cells_coords := []string{ "44-23", "44-33", "30-51", "24-43", "34-33", "34-43", "34-23" }
+
+
+	var path string = "/home/hxzwd/mephim/arc_data/arc1_txt_part"
+	var dump_path string = "/home/hxzwd/go_code/proc_rbmk_arc/p_arc_2/dumps"
+	var dump_filename string = "dump_0.arc.txt"
+	var csv_path string = "/home/hxzwd/go_code/proc_rbmk_arc/p_arc_2/dumps"
+	var csv_filename string = "table_1.txt"
+
+
+	info_mode_string := "default"
+	flag_raw_data := false
+	flag_not_none := true
+	table_format_options := "default"
+	table_header_options := "default"
+	var arc_data archiveData = NewEmptyArchiveData()
+	var dump_status bool
+
+
+
+	if _, err := os.Stat(dump_path + "/" + dump_filename); !os.IsNotExist(err) {
+		fmt.Printf("Dump file [%s/%s] exist\nNow read...\n", dump_path, dump_filename)
+		arc_data = tools_read_archive_dump(dump_path, dump_filename)
+	} else {
+		arc_data, _ = tools_get_archive_data(path, filenames, info_mode_string, cells_coords, flag_raw_data)
+		dump_status = tools_dump_archive_data(dump_path, dump_filename, arc_data)
+		fmt.Printf("Dump in file [%s/%s]; status: %s\n", dump_path, dump_filename, fmt.Sprint(dump_status))
+	}
+
+	if !arc_data.empty() {
+		arc_data.print_info("")
+	}
+
+//	table_fields := map[string][]string{ "all" : []string{ "param", "P", "dkv1_of", "dkv2_of" }}
+//	fields := map[string][]string{ "all" : []string{ "P", "dkv1_of", "dkv2_of", "W" }}
+	table_fields := map[string][]string{ "all" : []string{ "G", "P", "dkv1_of", "dkv2_of", "W" }}
+
+	if u_is_file_exist(csv_path, csv_filename) {
+		tools_read_data_csv(csv_path, csv_filename, "start = 0; nlines = 5; print = true; short = 30 20; columns = 0 1 2;")
+	} else {
+		tools_dump_csv(csv_path, csv_filename, arc_data, cells_coords, table_fields, flag_not_none, table_format_options, table_header_options)
+	}
+
+
+/*
+
+	table_fields := map[string][]string{ "all" : []string{ "G", "P", "dkv1_of", "dkv2_of", "W" }}
+	table_data, table_head, _ := tools_filter_archive_columns(arc_data, cells_coords, table_fields, flag_not_none)
+
+	for key, value := range table_data {
+		fmt.Println(key)
+		fmt.Println(value[0:5])
+	}
+	fmt.Println(table_head)
+
+	cols, opt, _ := tools_get_table_view(arc_data, cells_coords, table_fields, flag_not_none, "default")
+
+	opt = opt
+	for _, v := range cols {
+		fmt.Println(v[0:10])
+	}
+
+	csv_path = csv_path
+	csv_filename = csv_filename
+	table_format_options = table_format_options
+	table_header_options = table_header_options
+*/
+
+
+}
+
+func main_old_4() {
+
+	filenames := []string{ "00.txt", "01.txt", "02.txt", "03.txt", "04.txt", "05.txt", "06.txt", "07.txt", "08.txt", "09.txt", "10.txt", "11.txt" }
+	cells_coords := []string{}
+	cells_coords = []string{ "44-23", "44-33", "30-51", "24-43", "34-33", "34-43", "34-23" }
+
+
+	var path string = "/home/hxzwd/mephim/arc_data/arc1_txt_part"
+	var dump_path string = "/home/hxzwd/go_code/proc_rbmk_arc/p_arc_2/dumps"
+	var dump_filename string = "all.arc.txt"
+//	var csv_path string = "/home/hxzwd/go_code/proc_rbmk_arc/p_arc_2/dumps"
+//	var csv_filename string = "table_1.txt"
+
+
+	info_mode_string := "default"
+	flag_raw_data := false
+	var dump_status bool
+//	flag_not_none := true
+//	table_format_options := "default"
+//	table_header_options := "default"
+	var arc_data archiveData = NewEmptyArchiveData()
+
+
+
+
+	if _, err := os.Stat(dump_path + "/" + dump_filename); !os.IsNotExist(err) {
+		fmt.Printf("Dump file [%s/%s] exist\nNow read...\n", dump_path, dump_filename)
+		arc_data = tools_read_archive_dump(dump_path, dump_filename)
+	} else {
+		arc_data, _ = tools_get_archive_data(path, filenames, info_mode_string, cells_coords, flag_raw_data)
+		dump_status = tools_dump_archive_data(dump_path, dump_filename, arc_data)
+		fmt.Printf("Dump in file [%s/%s]; status: %s\n", dump_path, dump_filename, fmt.Sprint(dump_status))
+	}
+
+	if !arc_data.empty() {
+		arc_data.print_info("")
+	}
+
+}
+
+
+func main_old_5() {
+
+	filenames := []string{ "00.txt", "01.txt", "02.txt", "03.txt", "04.txt", "05.txt", "06.txt", "07.txt", "08.txt", "09.txt", "10.txt", "11.txt" }
+	cells_coords := []string{ "44-23", "44-33", "30-51", "24-43", "34-33", "34-43", "34-23" }
+
+
+	var path string = "/home/hxzwd/mephim/arc_data/arc1_txt_part"
+	var dump_path string = "/home/hxzwd/go_code/proc_rbmk_arc/p_arc_2/dumps"
+	var dump_filename string = "dump_0.arc.txt"
+	var csv_path string = "/home/hxzwd/go_code/proc_rbmk_arc/p_arc_2/dumps"
+	var csv_filename string = "table_1.txt"
+
+
+	info_mode_string := "default"
+	flag_raw_data := false
+	flag_not_none := true
+	table_format_options := "default"
+	table_header_options := "default"
+	var arc_data archiveData = NewEmptyArchiveData()
+	var dump_status bool
+
+
+
+	if _, err := os.Stat(dump_path + "/" + dump_filename); !os.IsNotExist(err) {
+		fmt.Printf("Dump file [%s/%s] exist\nNow read...\n", dump_path, dump_filename)
+		arc_data = tools_read_archive_dump(dump_path, dump_filename)
+	} else {
+		arc_data, _ = tools_get_archive_data(path, filenames, info_mode_string, cells_coords, flag_raw_data)
+		dump_status = tools_dump_archive_data(dump_path, dump_filename, arc_data)
+		fmt.Printf("Dump in file [%s/%s]; status: %s\n", dump_path, dump_filename, fmt.Sprint(dump_status))
+	}
+
+	if !arc_data.empty() {
+		arc_data.print_info("")
+	}
+
+	table_fields := map[string][]string{ "all" : []string{ "G", "P", "dkv1_of", "dkv2_of", "W" }}
+	data_csv_format_options := "start = 0; nlines = 0; print = true; columns = 0 1 2 3 4 5; header = true;"
+	data_csv_format_options = "start = 0; nlines = 1; print = true; column_view = true;"
+
+	if u_is_file_exist(csv_path, csv_filename) {
+		tools_read_data_csv(csv_path, csv_filename, data_csv_format_options)
+	} else {
+		tools_dump_csv(csv_path, csv_filename, arc_data, cells_coords, table_fields, flag_not_none, table_format_options, table_header_options)
+	}
+
+}
+
+func main() {
+	main_old_5()
+}

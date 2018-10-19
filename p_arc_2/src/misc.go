@@ -8,6 +8,9 @@ import (
 	"os"
 	"syscall"
 	"unsafe"
+	"bytes"
+	"text/tabwriter"
+	"strconv"
 )
 
 
@@ -16,6 +19,44 @@ type winsize struct {
 	Col uint16
 	Xpixel uint16
 	Ypixel uint16
+}
+
+func ft_key_list_s_(m map[string][]string) []string {
+	res := make([]string, 0)
+	for key, _ := range m {
+		res = append(res, key)
+	}
+	return res
+}
+
+
+func ft_in_map_s_ls(m map[string][]string, value string) bool {
+	return ft_in_list(ft_key_list_s_(m), value)
+}
+
+func ft_key_list_s(m map[string]interface{}) []string {
+	res := make([]string, 0)
+	for key, _ := range m {
+		res = append(res, key)
+	}
+	return res
+}
+
+
+func ft_key_list_sl(m map[string][]interface{}) []string {
+	res := make([]string, 0)
+	for key, _ := range m {
+		res = append(res, key)
+	}
+	return res
+}
+
+func ft_in_map_s_i(m map[string]interface{}, value string) bool {
+	return ft_in_list(ft_key_list_s(m), value)
+}
+
+func ft_in_map_s_li(m map[string][]interface{}, value string) bool {
+	return ft_in_list(ft_key_list_sl(m), value)
 }
 
 func ft_i2msls(m map[string]interface{}) map[string][]string {
@@ -355,4 +396,113 @@ func dumpMapInfo(m map[string]map[string]string) string {
 	res = strings.Trim(res, ",\n")
 	res += "\n}"
 	return res
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+func ft_fprint_list_of_columns(options string, columns [][]string, cols_num int) ([]string, string) {
+
+	if cols_num <= 0 {
+		cols_num = len(columns)
+	}
+
+	col1 := columns[0]
+	n := len(col1)
+	col2 := make([]string, n)
+
+	for j := 0; j < n; j++ {
+		tmp_row := ""
+		for i := 1; i < cols_num; i++ {
+			tmp_row = tmp_row + columns[i][j] + "\t"
+		}
+		col2[j] = strings.TrimSpace(tmp_row)
+	}
+
+	rows_data, headers := ft_fprint_two_columns(col1, col2, options)
+
+	return rows_data, headers
+
+}
+
+
+func ft_fprint_two_columns(column1 []string, column2 []string, options string) ([]string, string) {
+
+	var rows_num int = 0
+	var begin_pos int = 0
+	var flag_numerate bool = false
+	var columns_header string = ""
+	var err0 error = nil
+
+	var buf bytes.Buffer
+	var result_header string = ""
+	result_rows := make([]string, 0)
+
+
+	pattern := "[\\s]*(?P<option>[^;^=^\\s]+)[\\s]*[=]{1}[\\s]*(?P<value>[^;]+)[\\s]*(?:;|\\z)"
+
+	params := u_re_find_all(pattern, options)
+
+
+	for _, param := range params {
+		switch param["option"] {
+			case "rn":
+				rows_num, err0 = strconv.Atoi(param["value"])
+			case "n":
+				if param["value"] == "true" {
+					flag_numerate = true
+				}
+			case "b":
+				begin_pos, err0 = strconv.Atoi(param["value"])
+			case "h":
+				if param["value"] != "" {
+					columns_header = param["value"]
+				}
+				if flag_numerate {
+					columns_header = "index\t" + columns_header
+				}
+		}
+		if err0 != nil {
+				fmt.Printf("matt: f_print_two_columns() strconv.Atoi() error: %v\n", err0)
+				os.Exit(1)
+		}
+	}
+
+
+	if rows_num <= 0 {
+		rows_num = len(column1)
+	}
+
+
+
+	tab_writer := new(tabwriter.Writer)
+	tab_writer.Init(&buf, 0, 8, 2, '\t', 0 /* tabwriter.AlignRight */)
+
+	if columns_header != "" {
+		fmt.Fprintln(tab_writer, columns_header + "\t")
+		tab_writer.Flush()
+		result_header = buf.String()
+		buf.Reset()
+	}
+
+	for i := begin_pos; i < rows_num + begin_pos; i++ {
+		if flag_numerate {
+			fmt.Fprintln(tab_writer, fmt.Sprintf("%d\t", i) + column1[i] + "\t" + column2[i] + "\t")
+		} else {
+			fmt.Fprintln(tab_writer, column1[i] + "\t" + column2[i] + "\t")
+		}
+		tab_writer.Flush()
+		result_rows = append(result_rows, buf.String())
+		buf.Reset()
+	}
+
+	return result_rows, result_header
+
 }

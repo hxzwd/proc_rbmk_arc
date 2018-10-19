@@ -144,6 +144,35 @@ func f_float2str(fdata []float64) []string {
 	return res
 }
 
+func f_int2str(idata []int) []string {
+
+	res := make([]string, 0)
+
+	for _, v := range idata {
+		res = append(res, fmt.Sprintf("%d", v))
+	}
+
+	return res
+}
+
+
+func f_str2int(seq []string) []int {
+
+	res := make([]int, 0)
+
+	for _, v := range seq {
+		tmp_int, err0 := strconv.Atoi(v)
+		if err0 != nil {
+			fmt.Printf("matt: f_str2int() strconv.Atoi() error: %v\n", err0)
+			os.Exit(1)
+		}
+		res = append(res, tmp_int)
+	}
+
+	return res
+
+}
+
 func m_mean(seq []string) float64 {
 
 	fdata := f_str2float(seq)
@@ -273,3 +302,4 @@ func m_ccf(x []string, y []string, k int) float64 {
 	return r
 
 }
+

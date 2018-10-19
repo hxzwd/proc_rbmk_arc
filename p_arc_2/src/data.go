@@ -46,6 +46,27 @@ func (rbmk_data archiveData) format_text_data(arc_data map[string]interface{}) a
 	return New(archive_Data, archive_Cells, archive_Info, archive_Files)
 }
 
+func (rbmk_data archiveData) at(cell string, field string) []string {
+	if !rbmk_data.field_in(cell, field) {
+		return nil
+	}
+	tmp_rbmk_cell := rbmk_data.Data[cell]
+	res := tmp_rbmk_cell.data[field]
+	return res
+}
+
+func (rbmk_data archiveData) cell_in(cell string) bool {
+	return ft_in_list(rbmk_data.Cells, cell)
+}
+
+func (rbmk_cell archiveData) field_in(cell string, field string) bool {
+	if !rbmk_cell.cell_in(cell) {
+		return false
+	}
+
+	return ft_in_map_s_ls(rbmk_cell.Data[cell].data, field)
+}
+
 func NewEmptyArchiveData() archiveData {
 	return archiveData{ Data: nil, Cells: nil, Info: nil, Files: nil }
 }
